@@ -47,6 +47,7 @@ httpx = "^0.24.0"
 typer = "^0.7.0"
 rich = "^13.3.4"
 yt-dlp = "^2023.3.4"
+tenacity = "^8.2.2"
 
 [tool.ruff.flake8-quotes]
 inline-quotes = "single"
