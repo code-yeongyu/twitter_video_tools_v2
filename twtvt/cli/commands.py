@@ -1,11 +1,9 @@
-from typing import Optional, Union
+from typing import Optional
 
 import typer
-import yt_dlp
-from playwright.sync_api import sync_playwright
 from typer import Typer
 
-from twtvt.utils import TwitterParser, URLValidator
+from twtvt.utils import download_video
 
 cli_app = Typer()
 
@@ -23,45 +21,12 @@ def twtvt(
         help="Keeps finding videos until this link is found. None for no limit. Only for user's likes or media.",
     ),
 ):
-
-    # load playwright
-    browser = sync_playwright().start().webkit.launch(headless=False)
-    page = browser.new_page()
-
-    # load parser
-    parser = TwitterParser(page)
-    parser.login(username, password)
-
-    # extract video links
-    video_links: list[str] = []
-    for target_link in target_links:
-        url_validator = URLValidator(target_link)
-        if not url_validator.is_valid_link():
-            raise typer.BadParameter(f"'{target_link}' is an invalid link.")
-
-        if url_validator.is_valid_twitter_media_link():
-            target_username = target_link.split('/')[3]
-            video_links.extend(parser.get_media_video_tweets_until(target_username, until_link or 'nothing'))
-        elif url_validator.is_valid_twitter_liked_link():
-            target_username = target_link.split('/')[3]
-            video_links.extend(parser.get_liked_video_tweets_until(target_username, until_link or 'nothing'))
-        else:
-            video_links.append(target_link)
-
-    page.context.cookies()
-    page.close()
-
-    # save video_links as links.txt as backup
-    with open('links.txt', 'w') as f:
-        f.write('\n'.join(video_links))
-
-    ydl_opts: dict[str, Union[str, bool, tuple[Optional[str]]]] = {
-        'embed_subs': True,
-        'noplaylist': True,
-        'nocheckcertificate': True,
-    }
-    ydl_opts['outtmpl'] = f'{output}/%(title)s.%(ext)s'
-    ydl_opts['cookiesfrombrowser'] = (cookies_from_browser, )
-
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        ydl.download(video_links)
+    download_video(
+        target_links=target_links,
+        username=username,
+        password=password,
+        output=output,
+        debug=debug,
+        cookies_from_browser=cookies_from_browser,
+        until_link=until_link,
+    )
