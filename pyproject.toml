@@ -1,5 +1,5 @@
 [build-system]
-requires = [ "poetry-core",]
+requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
@@ -9,15 +9,15 @@ description = ""
 authors = []
 readme = "README.md"
 [[tool.poetry.packages]]
-include = "python_poetry_template"
+include = "twtvt"
 
 [tool.pyright]
 typeCheckingMode = "strict"
 pythonPlatform = "All"
 venvPath = "./.venv"
 stubPath = "./.type_stubs"
-include = [ "./*",]
-exclude = [ "**/node_modules", "**/__pycache__",]
+include = ["./*"]
+exclude = ["**/node_modules", "**/__pycache__"]
 useLibraryCodeForTypes = true
 reportMissingTypeStubs = false
 reportUnknownMemberType = false
@@ -33,11 +33,17 @@ allow_split_before_dict_value = false
 
 [tool.ruff]
 line-length = 119
-select = [ "PLE", "PLR", "PLW", "E", "W", "F", "I", "Q", "B",]
+select = ["PLE", "PLW", "E", "W", "F", "I", "Q"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
 poetry = "^1.4.0"
+playwright = "^1.32.1"
+beautifulsoup4 = "^4.12.2"
+httpx = "^0.24.0"
+typer = "^0.7.0"
+rich = "^13.3.4"
+yt-dlp = "^2023.3.4"
 
 [tool.ruff.flake8-quotes]
 inline-quotes = "single"
@@ -45,7 +51,7 @@ docstring-quotes = "single"
 multiline-quotes = "single"
 
 [tool.pytest.ini_options]
-addopts = [ "--cov=python_poetry_template",]
+addopts = ["--cov=twtvt"]
 
 [tool.poetry.group.dev.dependencies]
 toml = "^0.10.2"
