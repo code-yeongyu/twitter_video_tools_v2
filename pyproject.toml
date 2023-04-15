@@ -41,6 +41,7 @@ poetry = "^1.4.0"
 playwright = "^1.32.1"
 beautifulsoup4 = "^4.12.2"
 rich = "^13.3.4"
+httpx = "^0.24.0"
 
 [tool.ruff.flake8-quotes]
 inline-quotes = "single"
