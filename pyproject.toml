@@ -11,6 +11,9 @@ readme = "README.md"
 [[tool.poetry.packages]]
 include = "twtvt"
 
+[tool.poetry.scripts]
+twtvt = "twtvt:main"
+
 [tool.pyright]
 typeCheckingMode = "strict"
 pythonPlatform = "All"
