@@ -10,11 +10,11 @@ cli_app = Typer()
 
 @cli_app.command()
 def twtvt(
-    target_links: list[str] = typer.Argument(..., help="Video tweet link or target user's likes or media."),
-    username: str = typer.Argument(..., help='Your twitter credentials username.'),
-    password: str = typer.Argument(..., help='Your twitter credentials password.'),
+    target_uris: list[str] = typer.Argument(..., help="Video tweet link, target user's likes or media, or file path."),
+    username: Optional[str] = typer.Option(None, help='Your twitter credentials username.'),
+    password: Optional[str] = typer.Option(None, help='Your twitter credentials password.'),
     cookies_from_browser: Optional[str] = typer.Option(None, help='Browser to get cookies from. '),
-    output: str = typer.Option('videos', help='Output path for downloaded videos.'),
+    output: str = typer.Option('.', help='Output path for downloaded videos.'),
     debug: bool = typer.Option(False, help='Enable debug mode. This disables headless mode of Browser.'),
     until_link: Optional[str] = typer.Option(
         None,
@@ -22,7 +22,7 @@ def twtvt(
     ),
 ):
     download_video(
-        target_links=target_links,
+        target_uris=target_uris,
         username=username,
         password=password,
         output=output,
