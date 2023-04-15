@@ -20,7 +20,7 @@ def download_video(
 
     # load playwright
     with sync_playwright() as playwright_sync:
-        browser = playwright_sync.webkit.launch(headless=debug)
+        browser = playwright_sync.webkit.launch(headless=not debug)
         page = browser.new_page()
 
         # load parser

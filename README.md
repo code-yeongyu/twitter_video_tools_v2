@@ -22,7 +22,7 @@ poetry add twtvt
 ### Command line
 
 ```sh
-python3 -m twitter_video_tools --help
+twtvt --help
 ```
 
 Supported link types:
