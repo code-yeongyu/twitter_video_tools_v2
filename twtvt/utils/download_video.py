@@ -1,8 +1,10 @@
+import logging
 import time
 from typing import Iterable, Optional, Union
 
 import yt_dlp
 from playwright.sync_api import sync_playwright
+from tenacity import after_log, before_sleep_log, retry, stop_after_attempt, wait_fixed
 
 from .logger import logger
 from .twitter_parser import TwitterParser
@@ -96,7 +98,20 @@ def _backup_links(links: tuple[str], output: str):
         f.write('\n'.join(links))
 
 
-def _download_videos(video_links: Iterable[str], output: str, cookies_from_browser: Optional[str]):
+def _download_videos(video_links: tuple[str], output: str, cookies_from_browser: Optional[str]):
+    for index, video_link in enumerate(video_links):
+        logger.info(f'Downloading video from {video_link} ({index + 1}/{len(video_links)})')
+        _download_video(video_link, output, cookies_from_browser)
+
+
+@retry(
+    reraise=True,
+    before_sleep=before_sleep_log(logger, logging.DEBUG),
+    after=after_log(logger, logging.INFO),
+    stop=stop_after_attempt(60),
+    wait=wait_fixed(5),
+)
+def _download_video(video_link: str, output: str, cookies_from_browser: Optional[str]):
     ydl_opts: dict[str, Union[str, bool, tuple[Optional[str]]]] = {
         'nocheckcertificate': True,
     }
@@ -105,4 +120,4 @@ def _download_videos(video_links: Iterable[str], output: str, cookies_from_brows
         ydl_opts['cookiesfrombrowser'] = (cookies_from_browser, )  # noqa
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        ydl.download(video_links)
+        ydl.download([video_link])
