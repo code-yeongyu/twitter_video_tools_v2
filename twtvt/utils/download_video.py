@@ -1,5 +1,6 @@
 import logging
 import time
+from multiprocessing import cpu_count as get_cpu_count
 from typing import Iterable, Optional, Union
 
 import yt_dlp
@@ -115,9 +116,9 @@ def _download_videos(video_links: tuple[str], output: str, cookies_from_browser:
     wait=wait_fixed(10),
 )
 def _download_video(video_link: str, output: str, cookies_from_browser: Optional[str]):
-    ydl_opts: dict[str, Union[str, bool, tuple[Optional[str]]]] = {
+    ydl_opts: dict[str, Union[str, bool, int, tuple[Optional[str]]]] = {
         'nocheckcertificate': True,
-        'outtmpl': f'{output}/%(title)s.%(upload_date>%Y-%m-%d)s.%(id)s.%(ext)s'
+        'concurrent_fragment_downloads': get_cpu_count(),
     }
     if cookies_from_browser:
         ydl_opts['cookiesfrombrowser'] = (cookies_from_browser, )  # noqa
