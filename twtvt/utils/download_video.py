@@ -111,16 +111,22 @@ def _download_videos(video_links: tuple[str], output: str, cookies_from_browser:
     reraise=True,
     before_sleep=before_sleep_log(logger, logging.DEBUG),
     after=after_log(logger, logging.INFO),
-    stop=stop_after_attempt(5),
-    wait=wait_fixed(3),
+    stop=stop_after_attempt(60),
+    wait=wait_fixed(10),
 )
 def _download_video(video_link: str, output: str, cookies_from_browser: Optional[str]):
     ydl_opts: dict[str, Union[str, bool, tuple[Optional[str]]]] = {
         'nocheckcertificate': True,
+        'outtmpl': f'{output}/%(title)s.%(upload_date>%Y-%m-%d)s.%(id)s.%(ext)s'
     }
-    ydl_opts['outtmpl'] = f'{output}/%(title)s.%(upload_date>%Y-%m-%d)s.%(id)s.%(ext)s'
     if cookies_from_browser:
         ydl_opts['cookiesfrombrowser'] = (cookies_from_browser, )  # noqa
 
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        ydl.download([video_link])
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([video_link])
+    except yt_dlp.utils.DownloadError as e:
+        if '429' in str(e):  # Check if the error message contains "Too Many Requests"
+            logger.info('Too many requests. Waiting for 5 minutes and retrying...')
+            time.sleep(60 * 5)
+            raise e  # Raise the exception to retry
