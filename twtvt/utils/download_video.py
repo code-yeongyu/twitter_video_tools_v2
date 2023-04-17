@@ -119,6 +119,7 @@ def _download_video(video_link: str, output: str, cookies_from_browser: Optional
     ydl_opts: dict[str, Union[str, bool, int, tuple[Optional[str]]]] = {
         'nocheckcertificate': True,
         'concurrent_fragment_downloads': get_cpu_count(),
+        'outtmpl': f'{output}/%(title).200B.%(upload_date>%Y-%m-%d)s.%(id)s.%(ext)s'
     }
     if cookies_from_browser:
         ydl_opts['cookiesfrombrowser'] = (cookies_from_browser, )  # noqa
