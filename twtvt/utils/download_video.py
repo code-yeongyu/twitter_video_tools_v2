@@ -101,15 +101,18 @@ def _backup_links(links: tuple[str], output: str):
 def _download_videos(video_links: tuple[str], output: str, cookies_from_browser: Optional[str]):
     for index, video_link in enumerate(video_links):
         logger.info(f'Downloading video from {video_link} ({index + 1}/{len(video_links)})')
-        _download_video(video_link, output, cookies_from_browser)
+        try:
+            _download_video(video_link, output, cookies_from_browser)
+        except Exception as e:
+            logger.error(f'Failed to download video from {video_link}: {e}')
 
 
 @retry(
     reraise=True,
     before_sleep=before_sleep_log(logger, logging.DEBUG),
     after=after_log(logger, logging.INFO),
-    stop=stop_after_attempt(60),
-    wait=wait_fixed(5),
+    stop=stop_after_attempt(5),
+    wait=wait_fixed(3),
 )
 def _download_video(video_link: str, output: str, cookies_from_browser: Optional[str]):
     ydl_opts: dict[str, Union[str, bool, tuple[Optional[str]]]] = {
