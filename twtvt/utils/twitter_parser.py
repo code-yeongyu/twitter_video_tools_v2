@@ -155,7 +155,7 @@ class TwitterParser:
             links.extend(new_links)
             links = list(set(links))
 
-            logger.info(f'Found {len(links)} media tweets.')
+            logger.debug(f'Found {len(links)} video tweets.')
 
             if until_link in links:
                 break
