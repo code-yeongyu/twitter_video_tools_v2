@@ -1,11 +1,14 @@
 import logging
 import time
 from multiprocessing import cpu_count as get_cpu_count
-from typing import Iterable, Optional, Union
+from typing import Any, Iterable, Optional
 
 import yt_dlp
 from playwright.sync_api import sync_playwright
+from rich.progress import Progress
 from tenacity import after_log, before_sleep_log, retry, stop_after_attempt, wait_fixed
+
+from twtvt.utils.execute_parallel import execute_parallel
 
 from .logger import logger
 from .twitter_parser import TwitterParser
@@ -20,6 +23,7 @@ def download_video(
     password: Optional[str] = None,
     cookies_from_browser: Optional[str] = None,
     debug: bool = False,
+    parallel: bool = False,
 ):
     _validate_target_uris(target_uris=target_uris)
     video_links: tuple[str] = (
@@ -33,7 +37,10 @@ def download_video(
         ),
     )
     _backup_links(links=video_links, output=output)
-    _download_videos(video_links=video_links, output=output, cookies_from_browser=cookies_from_browser)
+    if parallel:
+        _download_videos_parallel(video_links=video_links, output=output, cookies_from_browser=cookies_from_browser)
+    else:
+        _download_videos(video_links=video_links, output=output, cookies_from_browser=cookies_from_browser)
 
 
 def _validate_target_uris(target_uris: list[str]):
@@ -100,12 +107,24 @@ def _backup_links(links: tuple[str], output: str):
 
 
 def _download_videos(video_links: tuple[str], output: str, cookies_from_browser: Optional[str]):
-    for index, video_link in enumerate(video_links):
-        logger.info(f'Downloading video from {video_link} ({index + 1}/{len(video_links)})')
-        try:
-            _download_video(video_link, output, cookies_from_browser)
-        except Exception as e:
-            logger.error(f'Failed to download video from {video_link}: {e}')
+    with Progress() as progress:
+        video_download_task = progress.add_task('Downloading Videos', total=len(video_links))
+        for index, video_link in enumerate(video_links):
+            progress.update(video_download_task, advance=1)
+            try:
+                _download_video(video_link, output, cookies_from_browser, (index, len(video_links)))
+            except Exception as e:
+                logger.error(f'Failed to download video from {video_link}: {e}')
+
+
+def _download_videos_parallel(video_links: tuple[str], output: str, cookies_from_browser: Optional[str]):
+    args = [(video_link, output, cookies_from_browser) for video_link in video_links]
+
+    with Progress() as progress:
+        video_download_task = progress.add_task('Downloading Videos', total=len(args))
+        for _ in execute_parallel(_download_video, args):
+            progress.update(video_download_task, advance=1)
+            progress.refresh()
 
 
 @retry(
@@ -115,18 +134,35 @@ def _download_videos(video_links: tuple[str], output: str, cookies_from_browser:
     stop=stop_after_attempt(60),
     wait=wait_fixed(10),
 )
-def _download_video(video_link: str, output: str, cookies_from_browser: Optional[str]):
-    ydl_opts: dict[str, Union[str, bool, int, tuple[Optional[str]]]] = {
+def _download_video(
+    video_link: str,
+    output: str,
+    cookies_from_browser: Optional[str],
+    counters: Optional[tuple[int, int]] = None,
+):
+    nothing_logger = logging.getLogger('nothing')
+    nothing_logger.setLevel(logging.CRITICAL)
+    ydl_opts: dict[str, Any] = {
         'nocheckcertificate': True,
-        'concurrent_fragment_downloads': get_cpu_count(),
-        'outtmpl': f'{output}/%(title).200B.%(upload_date>%Y-%m-%d)s.%(id)s.%(ext)s'
+        'concurrent_fragment_downloads': get_cpu_count() + 1,
+        'outtmpl': f'{output}/%(title).200B.%(upload_date>%Y-%m-%d)s.%(id)s.%(ext)s',
+        'no_warnings': True,
+        'logger': nothing_logger,
     }
     if cookies_from_browser:
         ydl_opts['cookiesfrombrowser'] = (cookies_from_browser, )  # noqa
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([video_link])
+            result: dict[str, str] = ydl.extract_info(video_link, download=True)  # type: ignore
+            if counters:
+                logger.info(
+                    f"[{counters[0]+1}/{counters[1]}] Downloaded video [magenta]{result['title']}[/]",
+                    extra={'markup': True},
+                )
+            else:
+                logger.info(f"Downloaded video [magenta]{result['title']}[/]", extra={'markup': True})
+            return result
     except yt_dlp.utils.DownloadError as e:
         if '429' in str(e):  # Check if the error message contains "Too Many Requests"
             logger.info('Too many requests. Waiting for 5 minutes and retrying...')
