@@ -1,6 +1,6 @@
 from enum import Enum
 from http.cookiejar import CookieJar
-from typing import Callable, Optional
+from typing import Callable, Optional, cast
 
 import browser_cookie3
 
@@ -18,35 +18,35 @@ class SupportedBrowser(Enum):
     SAFARI = 'safari'
 
 
-def get_cookie_loader(browser_name: Optional[SupportedBrowser]) -> Callable[[str], CookieJar]:
+def get_cookie_loader(browser_name: Optional[SupportedBrowser]) -> Callable[[None], CookieJar]:
 
-    def wrapper(domain: str) -> CookieJar:
+    def wrapper() -> CookieJar:
         if browser_name == SupportedBrowser.CHROME:
-            return browser_cookie3.chrome(domain)
+            return browser_cookie3.chrome()
         if browser_name == SupportedBrowser.FIREFOX:
-            return browser_cookie3.firefox(domain)
+            return browser_cookie3.firefox()
         if browser_name == SupportedBrowser.OPERA:
-            return browser_cookie3.opera(domain)
+            return browser_cookie3.opera()
         if browser_name == SupportedBrowser.OPERA_GX:
-            return browser_cookie3.opera_gx(domain)
+            return browser_cookie3.opera_gx()
         if browser_name == SupportedBrowser.EDGE:
-            return browser_cookie3.edge(domain)
+            return browser_cookie3.edge()
         if browser_name == SupportedBrowser.CHROMIUM:
-            return browser_cookie3.chromium(domain)
+            return browser_cookie3.chromium()
         if browser_name == SupportedBrowser.BRAVE:
-            return browser_cookie3.brave(domain)
+            return browser_cookie3.brave()
         if browser_name == SupportedBrowser.VIVALDI:
-            return browser_cookie3.vivaldi(domain)
+            return browser_cookie3.vivaldi()
         if browser_name == SupportedBrowser.SAFARI:
-            return browser_cookie3.safari(domain)
-        return browser_cookie3.load(domain)
+            return browser_cookie3.safari()
+        return browser_cookie3.load()
 
     return wrapper
 
 
 def load_cookies(browser_name: Optional[SupportedBrowser] = None, domain: str = '') -> CookieJar:
     cookie_loader = get_cookie_loader(browser_name=browser_name)
-    all_cookies = cookie_loader(domain)
+    all_cookies = cast(CookieJar, cookie_loader())
     if not domain:
         return all_cookies
 
