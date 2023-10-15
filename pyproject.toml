@@ -48,6 +48,7 @@ typer = "^0.7.0"
 rich = "^13.3.4"
 yt-dlp = "^2023.3.4"
 tenacity = "^8.2.2"
+browser-cookie3 = "^0.19.1"
 
 [tool.ruff.flake8-quotes]
 inline-quotes = "single"
@@ -61,7 +62,7 @@ addopts = ["--cov=twtvt"]
 toml = "^0.10.2"
 types-toml = "^0.10.8.5"
 yapf = "^0.32.0"
-ruff = "^0.0.261"
+ruff = "^0.0.292"
 pytest = "^7.3.0"
 pytest-cov = "^4.0.0"
 pytest-sugar = "^0.9.7"
