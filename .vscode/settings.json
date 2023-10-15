@@ -8,13 +8,12 @@
         "editor.codeActionsOnSave": {
             "source.organizeImports": true,
             "source.fixAll": true
-        }
+        },
+        "editor.defaultFormatter": "eeyore.yapf"
     },
     "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python3",
     "python.envFile": "${workspaceFolder}/.venv",
     "python.languageServer": "Pylance",
-    "python.formatting.provider": "yapf",
-    "python.formatting.yapfPath": "${workspaceFolder}/.venv/bin/yapf",
     "python.linting.enabled": true,
     "python.linting.pylintEnabled": true,
     "python.linting.pylintPath": "${workspaceFolder}/.venv/bin/pylint",
@@ -29,5 +28,6 @@
     "[toml]": {
         "editor.defaultFormatter": "tamasfe.even-better-toml"
     },
-    "python.linting.mypyPath": "${workspaceFolder}/.venv/bin/mypy"
+    "python.linting.mypyPath": "${workspaceFolder}/.venv/bin/mypy",
+    "ruff.path": [ "${workspaceFolder}/.venv/bin/ruff" ]
 }

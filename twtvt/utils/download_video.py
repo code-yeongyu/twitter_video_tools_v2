@@ -8,6 +8,7 @@ from playwright.sync_api import sync_playwright
 from rich.progress import Progress
 from tenacity import after_log, before_sleep_log, retry, stop_after_attempt, wait_fixed
 
+from twtvt.utils.cookie_parser import SupportedBrowser, load_cookies
 from twtvt.utils.execute_parallel import execute_parallel
 
 from .logger import logger
@@ -25,6 +26,7 @@ def download_video(
     debug: bool = False,
     parallel: bool = False,
 ):
+    supported_browser = SupportedBrowser(cookies_from_browser.lower()) if cookies_from_browser else None
     _validate_target_uris(target_uris=target_uris)
     video_links: tuple[str] = (
         *_extract_from_file_paths(target_uris=target_uris),
@@ -32,6 +34,7 @@ def download_video(
             target_uris=target_uris,
             username=username,
             password=password,
+            cookies_from_browser=supported_browser,
             until_link=until_link,
             debug=debug,
         ),
@@ -54,14 +57,17 @@ def _extract_from_twitter_links(
     target_uris: Iterable[str],
     username: Optional[str],
     password: Optional[str],
+    cookies_from_browser: Optional[SupportedBrowser],
     until_link: Optional[str],
     debug: bool,
 ) -> list[str]:
     twitter_target_links = [target_uri for target_uri in target_uris if URIValidator.is_twitter_link(target_uri)]
     if not twitter_target_links:
         return []
-    if not username or not password:
-        raise ValueError('Username and password are required for twitter links.')
+    if (not username or not password) and not cookies_from_browser:
+        raise ValueError('Username and password, or cookies_from_browser is required for twitter links.')
+
+    cookiejar = load_cookies(browser_name=cookies_from_browser, domain='twitter.com')
 
     twitter_video_links = []
     with sync_playwright() as playwright_sync:
@@ -71,7 +77,12 @@ def _extract_from_twitter_links(
 
         # load parser
         twitter_parser = TwitterParser(page)
-        twitter_parser.login(username, password)
+        if cookiejar:
+            twitter_parser.login_with_cookiejar(cookiejar)
+        if username and password:
+            twitter_parser.login(username, password)
+        else:
+            raise ValueError('Username and password, or cookies_from_browser is required for twitter links.')
 
         # extract video links
         for target_link in twitter_target_links:

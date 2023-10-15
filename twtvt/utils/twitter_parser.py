@@ -1,4 +1,5 @@
 import time
+from http.cookiejar import CookieJar
 from typing import Optional
 
 from playwright.sync_api import Error, Page, Request
@@ -32,6 +33,30 @@ class TwitterParser:
             raise ValueError('Login failed; Maybe username or password is incorrect?') from error
         self.page.wait_for_url('https://twitter.com/home')
         logger.info('Logged in successfully.')
+
+    def login_with_cookiejar(self, cookiejar: CookieJar) -> None:
+        logger.info('Logging in by cookies...')
+        self.page.goto('https://twitter.com/home')
+
+        playwright_cookies = []
+
+        for cookie in cookiejar:
+            cookie_attrs = vars(cookie)
+            target_playwright_cookie = {
+                'name': cookie.name,
+                'value': cookie.value,
+                'domain': cookie.domain,
+                'path': cookie.path,
+                'httpOnly': cookie_attrs.get('_rest', {}).get('HttpOnly', False),
+                'secure': bool(cookie.secure)
+            }
+            if cookie.expires is not None:
+                target_playwright_cookie['expires'] = cookie.expires
+
+            playwright_cookies.append(target_playwright_cookie)
+
+        self.page.context.add_cookies(playwright_cookies)
+        self.page.goto('https://twitter.com/home')
 
     def get_all_liked_video_tweets(self, username: str, scroll_timeout: float = 0.8) -> list[str]:
         """Get the username's all liked tweets
