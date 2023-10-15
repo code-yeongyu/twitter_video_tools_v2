@@ -79,7 +79,7 @@ def _extract_from_twitter_links(
         twitter_parser = TwitterParser(page)
         if cookiejar:
             twitter_parser.login_with_cookiejar(cookiejar)
-        if username and password:
+        elif username and password:
             twitter_parser.login(username, password)
         else:
             raise ValueError('Username and password, or cookies_from_browser is required for twitter links.')
