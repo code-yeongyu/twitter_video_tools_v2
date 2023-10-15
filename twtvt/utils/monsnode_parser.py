@@ -27,8 +27,14 @@ class MonsnodeParser:
         return video_name, link
 
     def _parse_video_name(self, soup: BeautifulSoup) -> str:
-        uploader_name = soup.select('body > div:nth-child(2) > div:nth-child(2) > div:nth-child(5) > b')[0].text
-        title = soup.select('body > div:nth-child(2) > div:nth-child(2) > div:nth-child(2)')[0].text
+        try:
+            uploader_name = soup.select('body > div:nth-child(2) > div:nth-child(2) > div:nth-child(5) > b')[0].text
+        except IndexError:
+            uploader_name = 'Unknown'
+        try:
+            title = soup.select('body > div:nth-child(2) > div:nth-child(2) > div:nth-child(2)')[0].text
+        except IndexError:
+            title = 'Unknown'
         title = title.replace('/', '_')
         title = title.replace('\n', '')
         return f'{uploader_name} - {title}.mp4'
