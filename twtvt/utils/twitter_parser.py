@@ -41,12 +41,13 @@ class TwitterParser:
         playwright_cookies = []
 
         for cookie in cookiejar:
+            cookie_attrs = vars(cookie)
             target_playwright_cookie = {
                 'name': cookie.name,
                 'value': cookie.value,
                 'domain': cookie.domain,
                 'path': cookie.path,
-                'httpOnly': cookie._rest.get('HttpOnly', False),
+                'httpOnly': cookie_attrs.get('_rest', {}).get('HttpOnly', False),
                 'secure': bool(cookie.secure)
             }
             if cookie.expires is not None:
