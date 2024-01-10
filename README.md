@@ -1,7 +1,8 @@
 # Twitter Video Tools V2
 
 - A Twitter video downloader
-- supports downloading videos from twitter (or specific user from twitter) && monsnode.
+- supports downloading videos from twitter (or specific user from twitter)
+- **Please note: This project has no affiliation with the similarly named website https://monsnode.com. Moreover, it is not associated in any way with https://x.com, formerly known as Twitter.**
 
 ## Install
 
